@@ -11,6 +11,9 @@
 환경변수:
   TARGET_BOAT          감시할 선박명 (기본값: 뉴항구호)
   MONTHS                감시할 연월, 콤마로 구분 (예: 202610,202611). 미지정시 이번달+다음달 자동계산
+  WATCH_DATES           감시할 특정 날짜만 콤마로 지정 (예: 2026-09-15,2026-10-03)
+                         지정하면 이 날짜들만 확인하고 나머지 날짜는 무시합니다.
+                         미지정시 MONTHS 안의 모든 날짜를 확인합니다.
   STATE_FILE            상태 저장 파일 경로 (기본값: state.json)
 
   NTFY_TOPIC            ntfy.sh 토픽명 (설정 시 푸시알림 사용)
@@ -31,6 +34,13 @@ BASE_URL = "https://daebak.sunsang24.com/ship/schedule_fleet/{yyyymm}"
 
 TARGET_BOAT = os.environ.get("TARGET_BOAT", "뉴항구호")
 STATE_FILE = os.environ.get("STATE_FILE", "state.json")
+
+WATCH_DATES_RAW = os.environ.get("WATCH_DATES", "").strip()
+WATCH_DATES = (
+    {d.strip() for d in WATCH_DATES_RAW.split(",") if d.strip()}
+    if WATCH_DATES_RAW
+    else None
+)  # None 이면 전체 날짜 감시, set 이면 그 날짜만 감시
 
 NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "").strip()
 KAKAO_REST_API_KEY = os.environ.get("KAKAO_REST_API_KEY", "").strip()
@@ -202,6 +212,10 @@ def main():
         entries = parse_target_boat(text, year, TARGET_BOAT)
         for entry in entries:
             date = entry["date"]
+
+            if WATCH_DATES is not None and date not in WATCH_DATES:
+                continue  # 감시 대상 날짜가 아니면 건너뜀
+
             prev = state.get(date, {})
             was_available = prev.get("available", False)
 
