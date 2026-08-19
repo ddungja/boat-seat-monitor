@@ -29,6 +29,7 @@ jobs:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
           KAKAO_REST_API_KEY: ${{ secrets.KAKAO_REST_API_KEY }}
           KAKAO_REFRESH_TOKEN: ${{ secrets.KAKAO_REFRESH_TOKEN }}
+          WATCH_DATES: ${{ vars.WATCH_DATES }}
         run: python monitor.py
 
       - name: 상태파일(state.json) 저장
